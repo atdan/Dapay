@@ -19,10 +19,8 @@ const Logger = require("./config/logger");
 global.logger = Logger.createLogger({label: "PaymentProcessor"})
 
 // Routers
-const productRouter = require("./routes/productRoutes");
 const userRouter = require('./routes/userRoutes');
-const subscriberRouter = require('./routes/subscriberRoutes');
-const orderRouter = require('./routes/transactionRoutes')
+const transactionRouter = require('./routes/transactionRoutes')
 
 
 // Errors
@@ -63,10 +61,8 @@ app.use(
 
 
 //Routes
-app.use("/api/v1/store-products", productRouter);
 app.use('/api/v1/users', userRouter);
-app.use('/api/v1/subcribers', subscriberRouter)
-app.use('/api/v1/order', orderRouter)
+app.use('/api/v1/order', transactionRouter)
 
 // Swagger route open with data
 const swaggerDocument = require('./swagger.json');

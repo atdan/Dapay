@@ -49,7 +49,7 @@
     return result;
   };
 
-  async function cacheData(hashKey, key, data, time) {
+  async function cacheData(hashKey, key, data, time = 60) {
     const cacheValue = JSON.stringify(data);
   
     await client.hset(hashKey, key, cacheValue);
@@ -58,9 +58,19 @@
     console.log("Data cached successfully");
   }
   
+  async function retrieveCachedData(hashKey, key) {
+    const cacheValue = await client.hget(hashKey, key);
+    if (cacheValue) {
+      return JSON.parse(cacheValue);
+    }
+    return null;
+  }
 
   module.exports = {
     clearKey(hashKey) {
       client.del(JSON.stringify(hashKey));
-    }
+    },
+
+    cacheData,
+    retrieveCachedData
   };

@@ -1,5 +1,6 @@
 const { v4 } = require('uuid');
 const csv = require("csv-parser");
+const { Readable } = require("stream")
 const Transactions = require("../models/transactions");
 const AppError = require('../utils/AppError');
 const { transactionTypes, transactionSource, currency, charges } = require("../utils/constants");
@@ -214,10 +215,21 @@ exports.sendBulkPaymentRequest = async (req, res, next) => {
     try {
         // Read CSV file asynchronously
         const payments = [];
-        fs.createReadStream('payments.csv')
+        // Read CSV data from request body
+        const csvData = req.body.csvData;
+        
+        // Convert CSV data to a readable stream
+        const csvStream = Readable.from(csvData.split('\n'));
+
+        csvStream
             .pipe(csv())
             .on('data', (row) => {
                 payments.push(row);
+            })
+            .on('error', (error) => {
+                // Handle error while parsing CSV
+                console.error('Error parsing CSV:' + error);
+                return next('Error parsing CSV: ' + error);
             })
             .on('end', async () => {
                 try {

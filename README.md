@@ -15,28 +15,29 @@ http://localhost:9000/api-docs
 * npm 
 ### Step 1: Clone the repo 
 ``` 
-git clone https://github.com/sajjad960/ComfySloth_Nodejs-Express_MongoDB_Backend.git
-cd ComfySloth_Nodejs-Express_MongoDB_Backend
+git clone https://github.com/atdan/Dapay.git
+cd Dapay
 ``` 
 ### Step 1: Create config.env
 ```
 NODE_ENV=development/production
 PORT=9000
 
-LOCAL_DATABASE=mongodb://localhost:27017/comfy_sloth
-
-JWT_SECRET=comfysloth-own-kktrw-kktrw
-JWT_EXPIRES_IN=10d
+DATABASE=mongodb://localhost:27017/dapay
+JWT_SECRET=sayc-owgn-kktw-kktrw
+JWT_EXPIRES_IN=1d
 
 EMAIL_USERNAME_APP=your gmail address
 EMAIL_PASSWORD_APP=your gmail app password
 
 # Production host address
-HOST_ADDRESS=Your Host Address (https://comfysloth.test.com)
-LOCAL_HOST_ADDRESS=http://localhost:3000
+HOST_ADDRESS=https://sample.test.com
+LOCAL_HOST=http://localhost:3000
 
-# stripe
-STRIPE_SECRET_KEY=your stripe secret key
+# yellowcard
+YC_API_KEY=yellow card api key
+YC_SECRET=yellowcard api secret
+YC_BASE_URL=https://sandbox.api.yellowcard.io/business
 ```
 
 ### Step 3: Start the server 
@@ -45,12 +46,6 @@ install packages: run this command
 npm i 
 ``` 
 Start this application: <br />
-Note: I am working on production and deployment command, I will add it as soon as possible.😊 
 ``` 
 npm start
 ```
-### Generate dummy data
-For generate dummy data 
- ``` 
- node data/import-data.js 
- ```

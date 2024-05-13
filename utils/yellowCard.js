@@ -1,4 +1,3 @@
-const forge = require('node-forge')
 const crypto = require('crypto-js')
 const axios = require('axios')
 
@@ -10,27 +9,6 @@ const config = require('../config')
  * @class YellowCardHelper
  */
 class YellowCardHelper {
-  /**
-   * It encrypts a data
-   * @static
-   * @param {string} text - The stringified format of the data to encrypt
-   * @returns {string} - The encrypted data
-   * @memberof FlutterWaveHelper
-   */
-  static encrypt (text) {
-    const key = config.FLUTTER_WAVE_ENCRYPTION_KEY
-    const cipher = forge.cipher.createCipher(
-      '3DES-ECB',
-      forge.util.createBuffer(key)
-    )
-    cipher.start({
-      iv: ''
-    })
-    cipher.update(forge.util.createBuffer(text, 'utf-8'))
-    cipher.finish()
-    const encrypted = cipher.output
-    return forge.util.encode64(encrypted.getBytes())
-  }
 
   static endpoints = {
     GET_CHANNELS: {
