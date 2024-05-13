@@ -100,16 +100,15 @@ exports.accountLookup = async (req, res, next) => {
     }
 }
 
-exports.sendPaymentRequest = async (req, res, next) => {
-    try {
-
-        const localCurrency = countryCurrencyCode(req.query.country);
+async function processPayment(payload) {
+    try{
+        const localCurrency = countryCurrencyCode(payload.country);
 
         let {data: channelData} = await YellowcardService.getAvailableChannels({
-            country: req.query.country
+            country: payload.country
         });
         let {data: networkData} = await YellowcardService.getNetworks({
-            country: req.query.country
+            country: payload.country
         });
         let {rates: ratesData} = await YellowcardService.getRates({
             currency: localCurrency
@@ -125,36 +124,36 @@ exports.sendPaymentRequest = async (req, res, next) => {
         
         let amount, localAmount;
 
-        if (req.body.amount) {
-            amount = req.body.amount;
+        if (payload.amount) {
+            amount = payload.amount;
             localAmount = amount * currency[0].sell
         } else if (req.body.localAmount) {
-            localAmount = req.body.localAmount;
+            localAmount = payload.localAmount;
             amount = localAmount * currency[0].buy
         }else {
-            next(new AppError("Provice either USD amount or local amount", 400))
+            return (new AppError("Provice either USD amount or local amount", 400))
         }
 
         const sender = {
-            name: req.user.name,
-            country: req.user.country,
-            phone: req.user.phoneNumber,
-            address: req.user.address,
-            dob: req.user.dob,
-            email: req.user.email,
-            idNumber: req.user.idNumber,
-            idType: req.user.idType
+            name: payload.user.name,
+            country: payload.user.country,
+            phone: payload.user.phoneNumber,
+            address: payload.user.address,
+            dob: payload.user.dob,
+            email: payload.user.email,
+            idNumber: payload.user.idNumber,
+            idType: payload.user.idType
         }
 
         const accountLookup = await YellowcardService.resolveBankAccount({
-            accountNumber: req.body.accountNumber,
+            accountNumber: payload.accountNumber,
             networkId: network.id,
             accountType: network.accountNumberType
         })
 
         const destination = {
             accountName: accountLookup.accountName,
-            accountNumber: req.body.accountNumber,
+            accountNumber: payload.accountNumber,
             accountType: network.accountNumberType,
             country: network.country,
             networkId: network.id,
@@ -162,10 +161,10 @@ exports.sendPaymentRequest = async (req, res, next) => {
           }
 
         const transactionOptions = {
-            account: req.account,
-            source: req.body.source,
+            account: payload.account,
+            source: payload.source,
             beneficiaryName: accountLookup.accountName,
-            beneficiaryAccountNumber: req.body.accountNumber,
+            beneficiaryAccountNumber: payload.accountNumber,
             beneficiaryBank: network.code, 
             currency, 
             amount, 
@@ -179,8 +178,8 @@ exports.sendPaymentRequest = async (req, res, next) => {
             sequenceId: txn.reference,
             currency: channel.currency,
             country: channel.country,
-            amountUSD: req.body.amount,
-            reason: req.body.reason,
+            amountUSD: payload.amount,
+            reason: payload.reason,
             destination,
             sender,
             forceAccept: true,
@@ -199,6 +198,23 @@ exports.sendPaymentRequest = async (req, res, next) => {
             txn
         });
 
+        return transaction;
+
+    }catch(error) {
+        return new AppError(error)
+    }
+}
+
+exports.sendPaymentRequest = async (req, res, next) => {
+    try {
+
+        const payload = {
+            ...req.body,
+            country: req.query.country,
+            account: req.account,
+            user: req.user,
+        }
+        const transaction = await processPayment(payload);
 
         res.status(200).json({
             status: 'success',
@@ -215,6 +231,8 @@ exports.sendBulkPaymentRequest = async (req, res, next) => {
     try {
         // Read CSV file asynchronously
         const payments = [];
+        const transactions = [];
+
         // Read CSV data from request body
         const csvData = req.body.csvData;
         
@@ -234,109 +252,23 @@ exports.sendBulkPaymentRequest = async (req, res, next) => {
             .on('end', async () => {
                 try {
                     for (const payment of payments) {
-                        const localCurrency = countryCurrencyCode(payment.country);
-    
-                        let {data: channelData} = await YellowcardService.getAvailableChannels({
-                            country: payment.country
-                        });
-                        let {data: networkData} = await YellowcardService.getNetworks({
-                            country: payment.country
-                        });
-                        let {rates: ratesData} = await YellowcardService.getRates({
-                            currency: localCurrency
-                        });
-                        let {channels, networks, rates} = {...networkData, ...channelData, ...ratesData}
-                
-                        // Select channel
-                        let channel = channels[1]
-                        let supportedNetworks = networks.filter(n => n.status === 'active' && n.channelIds.includes(channel.id));
-                        let network = supportedNetworks[0]
-                        
-                        const currency = rates.filter(r => r.code === localCurrency)
-                        
-                        let amount, localAmount;
-                
-                        if (payment.amount) {
-                            amount = payment.amount;
-                            localAmount = amount * currency[0].sell
-                        } else if (payment.localAmount) {
-                            localAmount = payment.localAmount;
-                            amount = localAmount * currency[0].buy
-                        }else {
-                            next(new AppError("Provide either USD amount or local amount", 400))
-                        }
-                
-                        const sender = {
-                            name: payment.name,
-                            country: payment.senderCountry,
-                            phone: payment.phone,
-                            address: payment.address,
-                            dob: payment.dob,
-                            email: payment.email,
-                            idNumber: payment.idNumber,
-                            idType: payment.idType
-                        }
-                
-                        const accountLookup = await YellowcardService.resolveBankAccount({
-                            accountNumber: payment.accountNumber,
-                            networkId: network.id,
-                            accountType: network.accountNumberType
-                        })
-                
-                        const destination = {
-                            accountName: accountLookup.accountName,
-                            accountNumber: payment.accountNumber,
-                            accountType: network.accountNumberType,
-                            country: network.country,
-                            networkId: network.id,
-                            accountBank: network.code
-                          }
-                
-                        const transactionOptions = {
+
+                        // csv fielsd: country, amount, localAmount, source, accountNumber
+                        const payload = {
+                            ...payments,
                             account: req.account,
-                            source: payment.source,
-                            beneficiaryName: accountLookup.accountName,
-                            beneficiaryAccountNumber: payment.accountNumber,
-                            beneficiaryBank: network.code, 
-                            currency, 
-                            amount, 
-                            localAmount,
-                            reason: payment.reason,
+                            user: req.user,
                         }
-                        const txn = await initDebitTransaction(transactionOptions);
-                
-                        let paymentRequest = {
-                            channelId: channel.id,
-                            sequenceId: txn.reference,
-                            currency: channel.currency,
-                            country: channel.country,
-                            amountUSD: payment.amount,
-                            reason: payment.reason,
-                            destination,
-                            sender,
-                            forceAccept: true,
-                        }
-                
-                        const response = await YellowcardService.submitPaymentRequest(paymentRequest);
-                        
-                        txn.vendorReference = response.id;
-                        txn.vendorCreatedAt = response.createdAt;
-                        txn.vendorUpdatedAt = response.updatedAt;
-                        txn.vendorStatus = response.status;
-                        txn.vendorConvertedAmount = response.convertedAmount;
-                
-                        const transaction = await createDebitTransaction({
-                            account,
-                            txn
-                        });
+
+                        const transaction = await processPayment(payload);
+                        transactions.push(transaction)
                     }
                 
                     res.status(200).json({
                         status: 'success',
-                        data: {
-                            transactions
-                        }
+                        data: transactions
                     });
+
                 } catch (error) {
                     next(error);
                 }
