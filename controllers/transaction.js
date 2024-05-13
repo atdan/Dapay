@@ -6,7 +6,8 @@ const AppError = require('../utils/AppError');
 const { transactionTypes, transactionSource, currency, charges } = require("../utils/constants");
 const { countryISOCode, countryCurrencyCode } = require("../utils/yellowCard");
 const YellowcardService = require("../services/yellowCardService")
-const { createCreditTransaction, createDebitTransaction, initDebitTransaction } = require("../services/transactionService")
+const { createCreditTransaction, createDebitTransaction, initDebitTransaction } = require("../services/transactionService");
+const Accounts = require('../models/accounts');
 
 exports.fetchSupportedCountries = async (req, res, next) => {
     try {
@@ -353,6 +354,99 @@ exports.denyPaymentRequest = async (req, res, next) => {
             status: 'success',
             data: response
         })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.createWebhook = async (req, res, next) => {
+    try {
+        const payload = {
+            url: req.body.url,
+            state: req.body.state,
+            active: req.body.active,
+        }
+
+        const response = await YellowcardService.createWebhook(payload);
+
+        res.status(200).json({
+            status: 'success',
+            data: response
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.updateWebhook = async (req, res, next) => {
+    try {
+        const payload = {
+            id: req.body.id,
+            url: req.body.url,
+            state: req.body.state,
+            active: req.body.active,
+        }
+
+        const response = await YellowcardService.updateWebhook(payload);
+
+        res.status(200).json({
+            status: 'success',
+            data: response
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.removeWebhook = async (req, res, next) => {
+    try {
+        const payload = {
+            id: req.body.id,
+        }
+
+        const response = await YellowcardService.removeWebhook(payload);
+
+        res.status(200).json({
+            status: 'success',
+            data: response
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.listWebhooks = async (req, res, next) => {
+    try {
+        const response = await YellowcardService.listWebhooks();
+
+        res.status(200).json({
+            status: 'success',
+            data: response
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.recievePaymentCompletedWebhook = async (req, res, next) => {
+    try {
+        // const {
+        //     id, sequenceId, status, apiKey, event, executedAt
+        // } = req.body;
+
+        // if(status != "completed") {
+
+        // }
+        // const payment = await YellowcardService.lookupPayment({ id })
+
+        // const account = await Accounts.findOne({accountNumber: payment.destination.accountNumber})
+        // const transaction = {
+        //     account,
+        //     source: transactionSource.EXTERNAL,
+        //     beneficiaryName: payment.sender.name,
+        //     beneficiaryAccountNumber: payment.sender.
+        // }
+        
     } catch (error) {
         next(error)
     }

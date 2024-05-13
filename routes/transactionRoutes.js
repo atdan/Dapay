@@ -24,6 +24,10 @@ router.route('/transfer-bulk').post(transactionController.sendBulkPaymentRequest
 router.route('/accept').post(transactionController.acceptPaymentRequest)
 router.route('/deny').post(transactionController.denyPaymentRequest)
 
+router.route('/webhook').post(transactionController.createWebhook)
+router.route('/webhook').put(transactionController.updateWebhook)
+router.route('/webhook').delete(transactionController.removeWebhook)
+router.route('/webhook').get(transactionController.listWebhooks)
 
 
 module.exports = router;

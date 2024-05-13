@@ -51,6 +51,22 @@ class YellowCardHelper {
       url : config.ycBaseUrl + "/payments/sequence-id",
       method: "GET"
     },
+    CREATE_WEBHOOK: {
+      url : config.ycBaseUrl + "/webhooks",
+      method: "POST"
+    },
+    UPDATE_WEBHOOK: {
+      url : config.ycBaseUrl + "/webhooks",
+      method: "PUT"
+    },
+    REMOVE_WEBHOOK: {
+      url : config.ycBaseUrl + "/webhooks",
+      method: "DELETE"
+    },
+    LIST_WEBHOOKS: {
+      url : config.ycBaseUrl + "/webhooks",
+      method: "GET"
+    }
   }
   
   static countryISOCode = {

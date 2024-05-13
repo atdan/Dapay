@@ -204,11 +204,13 @@ class YellowCardService {
     try {
 
         const options = {
+            url: YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.url  + `/${accountType}`,
             method: YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.method,
             headers: YellowCardHelper.buildHeader(data),
+            data,
         }
 
-        const response = await axios.get(YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.url + `/${accountType}`, options);
+        const response = await axios(options);
 
         if (!response) {
             return new AppError("Request failed", 500);
@@ -239,11 +241,13 @@ class YellowCardService {
     try {
 
         const options = {
+            url: YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.url,
             method: YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.method,
             headers: YellowCardHelper.buildHeader(data),
+            data,
         }
 
-        const response = await axios.get(YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.url, options);
+        const response = await axios(options);
 
         if (!response) {
             return new AppError("Request failed", 500);
@@ -330,11 +334,12 @@ class YellowCardService {
     try {  
 
         const options = {
+            url: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.url + `/${data.id}/accept`,
             method: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.method,
             headers: YellowCardHelper.buildHeader(),
         }
 
-        const response = await axios.get(YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.url + `/${data.id}/accept`, options);
+        const response = await axios(options);
 
         if (!response) {
             return new AppError("Request failed", 500);
@@ -359,11 +364,12 @@ class YellowCardService {
     try {  
 
         const options = {
+            url: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.url + `/${data.id}/deny`,
             method: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.method,
             headers: YellowCardHelper.buildHeader(),
         }
 
-        const response = await axios.get(YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.url + `/${data.id}/deny  `, options);
+        const response = await axios(options);
 
         if (!response) {
             return new AppError("Request failed", 500);
@@ -383,6 +389,149 @@ class YellowCardService {
         return new AppError(error, 500);
     }
   }
+
+  /**
+   * Create webhook
+   * @static
+   * @param {object} data - {url, state, active=true}
+   *        state = payment.complete
+   * @returns {object} - account details
+   */  
+  static async createWebhook(data) {
+    try {  
+
+        const options = {
+            url: YellowCardHelper.endpoints.CREATE_WEBHOOK.url,
+            method: YellowCardHelper.endpoints.CREATE_WEBHOOK.method,
+            headers: YellowCardHelper.buildHeader(data),
+            data,
+        }
+
+        const response = await axios(options);
+
+        if (!response) {
+            return new AppError("Request failed", 500);
+        }
+
+        if (response.status != 200) {
+            return new AppError(response.data.message ? 
+                response.data.message : "Request Failed",
+                response.data.code ? 
+                response.data.code : 500)
+        }
+
+
+        return response.data;
+
+    } catch (error) {
+        return new AppError(error, 500);
+    }
+  }
+
+  /**
+   * Update webhook
+   * @static
+   * @param {object} data - { id, url, state, active=true}
+   *        state = payment.complete
+   * @returns {object} - account details
+   */  
+  static async updateWebhook(data) {
+    try {  
+
+        const options = {
+            url: YellowCardHelper.endpoints.UPDATE_WEBHOOK.url,
+            method: YellowCardHelper.endpoints.UPDATE_WEBHOOK.method,
+            headers: YellowCardHelper.buildHeader(data),
+            data,
+        }
+
+        const response = await axios(options);
+
+        if (!response) {
+            return new AppError("Request failed", 500);
+        }
+
+        if (response.status != 200) {
+            return new AppError(response.data.message ? 
+                response.data.message : "Request Failed",
+                response.data.code ? 
+                response.data.code : 500)
+        }
+
+
+        return response.data;
+
+    } catch (error) {
+        return new AppError(error, 500);
+    }
+  }
+
+  /**
+   * Remove webhook
+   * @static
+   * @param {object} data - { id }
+   * @returns {object} - account details
+   */  
+  static async removeWebhook(data) {
+    try {  
+
+        const options = {
+            url: YellowCardHelper.endpoints.REMOVE_WEBHOOK.url + `/${data.id}`,
+            method: YellowCardHelper.endpoints.REMOVE_WEBHOOK.method,
+            headers: YellowCardHelper.buildHeader(),
+        }
+
+        const response = await axios(options);
+
+        if (!response) {
+            return new AppError("Request failed", 500);
+        }
+
+        if (response.status != 200) {
+            return new AppError(response.data.message ? 
+                response.data.message : "Request Failed",
+                response.data.code ? 
+                response.data.code : 500)
+        }
+
+
+        return response.data;
+
+    } catch (error) {
+        return new AppError(error, 500);
+    }
+  }
+
+  static async listWebhooks() {
+    try {  
+
+        const options = {
+            url: YellowCardHelper.endpoints.LIST_WEBHOOKS.url,
+            method: YellowCardHelper.endpoints.LIST_WEBHOOKS.method,
+            headers: YellowCardHelper.buildHeader(),
+        }
+
+        const response = await axios(options);
+
+        if (!response) {
+            return new AppError("Request failed", 500);
+        }
+
+        if (response.status != 200) {
+            return new AppError(response.data.message ? 
+                response.data.message : "Request Failed",
+                response.data.code ? 
+                response.data.code : 500)
+        }
+
+
+        return response.data;
+
+    } catch (error) {
+        return new AppError(error, 500);
+    }
+  }
+
 }
 
 module.exports = YellowCardService;

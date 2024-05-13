@@ -23,11 +23,9 @@ const transactionSchema = new mongoose.Schema({
   },
   beneficiaryAccountNumber: {
     type: Number,
-    required: [true, "Beneficiary account number not set"],
   },
   beneficiaryBank: {
     type: String,
-    required: [true, "Beneficiary bank not set"],
   },
   reference: {
     type: String,
