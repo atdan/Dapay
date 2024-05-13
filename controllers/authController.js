@@ -64,14 +64,17 @@ exports.signup = async (req, res, next) => {
             return next(new AppError("Error creating user", 500))
         }
 
-        const usdAccount = await Accounts.create({
-            user: user._id,
-            accountNumber: generateAccountNumber(),
-            currency: currency.USD,
-        });
+        let account;
+        if (user.role = 'admin') {
+             account = await Accounts.create({
+                user: user._id,
+                accountNumber: generateAccountNumber(),
+                currency: currency.USD,
+            });
+        }
 
         // create token,
-        createSendToken(newUser, usdAccount, 201,req, res)
+        createSendToken(newUser, account, 201,req, res)
     } catch (err) {
         next(err)
     }
