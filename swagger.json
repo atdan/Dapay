@@ -1,0 +1,378 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "ComfySloth Application API",
+        "description": "Collections of ComfySloth (mini-scale ecommerce application) API",
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "host": "localhost:9000",
+    "basePath": "/api/v1",
+    "tags": [
+        {
+            "name": "Products",
+            "description": "API for products in the system"
+        },
+        {
+            "name": "Users",
+            "description": "API for users in the system"
+        }
+    ],
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/store-products": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get All Products",
+                "responses": {
+                    "200": {
+                        "status": "Success",
+                        "results": "Number",
+                        "data": {
+                            "products": "Array"
+                        },
+                        "schema": {
+                            "$ref": "#/definitions/Product"
+                        }
+                    }
+                }
+            }
+        },
+        "/store-products/{id}": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get product by id",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the product",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "status": "Success",
+                        "data": {
+                            "product": "Array"
+                        },
+                        "schema": {
+                            "$ref": "#/definitions/Product"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create new user in system",
+                "description": "Create new user in system",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "body",
+                        "description": "User that we want to create",
+                        "schema": {
+                            "$ref": "#/definitions/UserViewModel"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "New user is created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all users in system",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Users"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Updates the user",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "User payload for update",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserViewModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete user by id",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the user",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Updates the user",
+                "responses": {
+                    "200": {
+                        "status": "success",
+                        "doc": "object",
+                        "schema": {
+                            "type": "string",
+                            "$ref": "#/definitions/UserViewModel"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Product": {
+            "required": [
+                "stock",
+                "price",
+                "name"
+            ],
+            "properties": {
+                "stock": {
+                    "type": "number"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "shipping": {
+                    "type": "boolean"
+                },
+                "featured": {
+                    "type": "boolean"
+                },
+                "colors": {
+                    "type": "array"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array"
+                },
+                "reviews": {
+                    "type": "number"
+                },
+                "stars": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string",
+                    "unique": "boolean",
+                    "trim": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "userReviews": {
+                    "type": "array"
+                }
+            }
+        },
+        "User": {
+            "required": [
+                "name",
+                "email",
+                "password",
+                "passwordConfirm"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "unique": "boolean",
+                    "lowercase": "boolean",
+                    "validate": "boolean"
+                },
+                "photo": {
+                    "type": "string",
+                    "default": "default.jpg"
+                },
+                "role": {
+                    "type": "string",
+                    "default": "user"
+                },
+                "password": {
+                    "type": "string",
+                    "required": "boolean",
+                    "minlength": "boolean"
+                },
+                "passwordConfirm": {
+                    "type": "string",
+                    "validate": "boolean"
+                },
+                "passwordChangedAt": {
+                    "type": "date",
+                    "validate": "boolean"
+                },
+                "passwordResetToken": {
+                    "type": "String"
+                },
+                "passwordResetExpires": {
+                    "type": "date"
+                },
+                "active": {
+                    "type": "boolean",
+                    "default": "true"
+                }
+            }
+        },
+        "UserViewModel": {
+            "required": [
+                "name",
+                "email",
+                "password",
+                "passwordConfirm"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "unique": "boolean",
+                    "lowercase": "boolean",
+                    "validate": "boolean"
+                },
+                "photo": {
+                    "type": "string",
+                    "default": "default.jpg"
+                },
+                "role": {
+                    "type": "string",
+                    "default": "user"
+                },
+                "password": {
+                    "type": "string",
+                    "required": "boolean",
+                    "minlength": "boolean"
+                },
+                "passwordConfirm": {
+                    "type": "string",
+                    "validate": "boolean"
+                }
+            }
+        },
+        "Order": {
+            "required": [
+                "product",
+                "user",
+                "price"
+            ],
+            "properties": {
+                "product": {
+                    "type": "is",
+                    "examples": [
+                        "5f8abd12a57f4e103cb4d302"
+                    ]
+                },
+                "user": {
+                    "type": "id",
+                    "examples": [
+                        "5f8abd12a57f4e103cb4d302"
+                    ]
+                },
+                "createdAt": {
+                    "type": "Date",
+                    "default": "Date.now",
+                    "examples": [
+                        "2020-10-17T09:44:50.543Z"
+                    ]
+                },
+                "paid": {
+                    "type": "boolean",
+                    "default": "true"
+                }
+            }
+        },
+        "subscriberModel": {
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "unique": "boolean",
+                    "lowercase": "boolean",
+                    "validate": "boolean"
+                }
+            }
+        }
+    }
+}
