@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { currency } = require("../utils/constants");
 
 const accountSchema = new mongoose.Schema({
   user: {
@@ -8,19 +7,21 @@ const accountSchema = new mongoose.Schema({
     required: [true, "User must own an account"],
     index: true,
   },
+  accountName: {
+    type: String,
+    required: [true, "Account name must be set"],
+  },
   accountNumber: {
     type: Number,
     required: [true, "Account number must be set"],
-    index: true.valueOf,
   },
   currency: {
     type: String,
-    enum: [currency.NGN, currency.USD],
+    default: "USD",
     required: [true, "Account currency must be set"],
   },
   balance: {
     type: mongoose.Schema.Types.Decimal128,
-    required: [true, "Account balance must be set"],
     default: 0,
   },    
   createdAt: {

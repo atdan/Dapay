@@ -182,7 +182,7 @@ async function processPayment(payload) {
             reason: payload.reason,
             destination,
             sender,
-            forceAccept: true,
+            forceAccept: req.user.role === "admin" ? true : false,
         }
 
         const response = await YellowcardService.submitPaymentRequest(paymentRequest);
@@ -232,6 +232,7 @@ exports.sendBulkPaymentRequest = async (req, res, next) => {
         // Read CSV file asynchronously
         const payments = [];
         const transactions = [];
+        const failedTransactions = []
 
         // Read CSV data from request body
         const csvData = req.body.csvData;
@@ -253,7 +254,7 @@ exports.sendBulkPaymentRequest = async (req, res, next) => {
                 try {
                     for (const payment of payments) {
 
-                        // csv fielsd: country, amount, localAmount, source, accountNumber
+                        // csv fields: country, amount, localAmount, source, accountNumber
                         const payload = {
                             ...payments,
                             account: req.account,
@@ -264,16 +265,95 @@ exports.sendBulkPaymentRequest = async (req, res, next) => {
                         transactions.push(transaction)
                     }
                 
-                    res.status(200).json({
-                        status: 'success',
-                        data: transactions
-                    });
-
                 } catch (error) {
-                    next(error);
+                    console.error('Error processing Payment:' + error);
+
+                    const paymentError = {
+                        error,
+                    }
+
+                    failedTransactions.push(paymentError)
                 }
+
+                res.status(200).json({
+                    status: 'success',
+                    data: {
+                        transactions,
+                        failedTransactions
+                    }
+                });
             });
     } catch (error) {
+        console.error('Error processing bulk Payment:' + error);
+
         next(error);
+    }
+}
+
+exports.lookupPayment = async (req, res, next) => {
+    try {
+        const payload = {
+            id: req.query.id
+        }
+
+        const response = await YellowcardService.lookupPayment(payload);
+
+        res.status(200).json({
+            status: 'success',
+            data: response
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.lookupPaymentBySequenceId = async (req, res, next) => {
+    try {
+        const payload = {
+            sequenceId: req.query.sequenceId
+        }
+
+        const response = await YellowcardService.lookupPaymentBySequenceId(payload);
+
+        res.status(200).json({
+            status: 'success',
+            data: response
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.acceptPaymentRequest = async (req, res, next) => {
+    try {
+        const payload = {
+            id: req.query.id
+        }
+
+        const response = await YellowcardService.acceptPaymentRequest(payload);
+
+        res.status(200).json({
+            status: 'success',
+            data: response
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+exports.denyPaymentRequest = async (req, res, next) => {
+    try {
+        const payload = {
+            id: req.query.id
+        }
+
+        const response = await YellowcardService.denyPaymentRequest(payload);
+
+        res.status(200).json({
+            status: 'success',
+            data: response
+        })
+    } catch (error) {
+        next(error)
     }
 }

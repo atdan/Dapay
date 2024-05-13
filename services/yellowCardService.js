@@ -42,7 +42,7 @@ class YellowCardService {
         }
 
     } catch (error) {
-        return new AppError(error, 500);
+        return new AppError(error);
     }
   }
 
@@ -324,6 +324,64 @@ class YellowCardService {
         } catch (error) {
             return new AppError(error, 500);
         }
+  }
+
+  static async acceptPaymentRequest(data) {
+    try {  
+
+        const options = {
+            method: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.method,
+            headers: YellowCardHelper.buildHeader(),
+        }
+
+        const response = await axios.get(YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.url + `/${data.id}/accept`, options);
+
+        if (!response) {
+            return new AppError("Request failed", 500);
+        }
+
+        if (response.status != 200) {
+            return new AppError(response.data.message ? 
+                response.data.message : "Request Failed",
+                response.data.code ? 
+                response.data.code : 500)
+        }
+
+
+        return response.data;
+
+    } catch (error) {
+        return new AppError(error, 500);
+    }
+  }
+
+  static async denyPaymentRequest(data) {
+    try {  
+
+        const options = {
+            method: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.method,
+            headers: YellowCardHelper.buildHeader(),
+        }
+
+        const response = await axios.get(YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.url + `/${data.id}/deny  `, options);
+
+        if (!response) {
+            return new AppError("Request failed", 500);
+        }
+
+        if (response.status != 200) {
+            return new AppError(response.data.message ? 
+                response.data.message : "Request Failed",
+                response.data.code ? 
+                response.data.code : 500)
+        }
+
+
+        return response.data;
+
+    } catch (error) {
+        return new AppError(error, 500);
+    }
   }
 }
 

@@ -49,8 +49,10 @@ exports.signup = async (req, res, next) => {
         }
 
         const newUser = await Users.create({
-            name: req.body.name,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
             email: req.body.email,
+            phoneNumber: req.body.phone,
             password: req.body.password,
             passwordConfirm: req.body.passwordConfirm,
         })
@@ -59,15 +61,10 @@ exports.signup = async (req, res, next) => {
             return next(new AppError("Error creating user", 500))
         }
 
-        const ngnAccount = await Accounts.create({
-            user: user._id,
-            accountNumber: generateAccountNumber(),
-            currency: currency.NGN,
-        });
         const usdAccount = await Accounts.create({
             user: user._id,
             accountNumber: generateAccountNumber(),
-            currency: currency.NGN,
+            currency: currency.USD,
         });
 
         // create token,
@@ -114,30 +111,40 @@ exports.login = async (req, res, next) => {
 // Protect function
 exports.protect = async (req,res, next) => {
     try {
-       // Getting token and check of it's there
-    let token;
-    if(req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-        token = req.headers.authorization.split(" ")[1];
-    }
+        // Getting token and check of it's there
+        let token;
+        if(req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+            token = req.headers.authorization.split(" ")[1];
+        }
 
-    if(!token) {
-        return next(new AppError('You are not log in! Please log in to get access', 401))
-    }
-    // Verification token
-    const decoded = await promisify(jwt.verify)(token, config.jwtSecret);
-    // Check if user still exists
-    const currentUser = await Users.findById(decoded.id);
+        if(!token) {
+            return next(new AppError('You are not log in! Please log in to get access', 401))
+        }
+        // Verification token
+        const decoded = await promisify(jwt.verify)(token, config.jwtSecret);
+        // Check if user still exists
+        const currentUser = await Users.findById(decoded.id);
 
-    if(!currentUser) {
-        return next(new AppError('The user belonging to this token does n longer exist', 401))
-    }
-    // Check if user changed password after the token was issued.
-    if(currentUser.changedPasswordAfter(decoded.iat)) {
-        return next(new AppError('User recently change password. Please log in again', 400))
-    }
-    // GRANT ACCESS TO PROTECTED ROUTE
-    req.user = currentUser;
-    next() 
+        if(!currentUser) {
+            return next(new AppError('The user belonging to this token does n longer exist', 401))
+        }
+        // Check if user changed password after the token was issued.
+        if(currentUser.changedPasswordAfter(decoded.iat)) {
+            return next(new AppError('User recently change password. Please log in again', 400))
+        }
+
+        const userAccount = await Accounts.findOne({
+            user: currentUser._id,
+            currency: currency.USD
+        })
+
+        if (userAccount) {
+            req.account = userAccount;
+        }
+
+        // GRANT ACCESS TO PROTECTED ROUTE
+        req.user = currentUser;
+        next() 
     } catch (err) {
         next(err)
     }

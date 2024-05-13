@@ -16,11 +16,12 @@ const bodyParser = require("body-parser");
 require("./services/cache");
 //logger
 const Logger = require("./config/logger");
-global.logger = Logger.createLogger({label: "PaymentProcessor"})
+global.logger = Logger.createLogger({label: "Dapay"})
 
 // Routers
 const userRouter = require('./routes/userRoutes');
 const transactionRouter = require('./routes/transactionRoutes')
+const accountsRouter = require('./routes/accountRoutes')
 
 
 // Errors
@@ -35,7 +36,6 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
-// app.use(passport.initialize())
 
 app.use((req, res, next) => {
   console.log("hello from middleware");
@@ -57,16 +57,16 @@ app.use(
   )
 );
 
-// require('./config/passport')(passport);
-
 
 //Routes
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/order', transactionRouter)
+app.use('/api/users', userRouter);
+app.use('/api/transaction', transactionRouter)
+app.use('/api/accounts', accountsRouter)
 
 // Swagger route open with data
 const swaggerDocument = require('./swagger.json');
-const passport = require("passport");
+// const passport = require("passport");
+
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
 

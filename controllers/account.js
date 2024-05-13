@@ -1,4 +1,3 @@
-const { v4 } = require('uuid');
 const Accounts = require("../models/accounts");
 const AppError = require('../utils/AppError');
 const {createCreditTransaction, createDebitTransaction} = require("./transaction")
@@ -30,7 +29,7 @@ const creditAccount = async(req, res, next) => {
 
         const account = await Accounts.findOne({
             user: req.user._id,
-            currency
+            currency: currency ? currency : "USD"
         });
 
         if (!account) {
@@ -52,6 +51,43 @@ const creditAccount = async(req, res, next) => {
             return next(new AppError("Transaction Failed", 500))
         }
 
+        
+    } catch (error) {
+        next(error);
+    }
+}
+
+const creditClientAccount = async(req, res, next) => {
+    try {
+        const { clientId, amount, currency, source, narration,
+            beneficiaryName, beneficiaryAccountNumber,
+            beneficiaryBank } = req.body;
+
+        const account = await Accounts.findOne({
+            user: clientId,
+            currency: currency ? currency : "USD"
+        });
+
+        if (!account) {
+            return next(new AppError("Account does not exist", 404))
+        }
+
+        const txnOptions = {account, 
+            source, 
+            beneficiaryName: beneficiaryName ? beneficiaryName : "System", 
+            beneficiaryAccountNumber: beneficiaryAccountNumber ? beneficiaryAccountNumber : "0000000001",
+            beneficiaryBank: beneficiaryBank ? beneficiaryBank : "Dapay", 
+            currency, 
+            amount, 
+            narration}
+
+        const transaction = await createCreditTransaction(txnOptions);
+
+        if(!transaction) {
+            return next(new AppError("Transaction Failed", 500))
+        }
+
+        return transaction;
         
     } catch (error) {
         next(error);
@@ -92,4 +128,9 @@ const debitAccount = async(req, res, next) => {
     } catch (error) {
         next(error);
     }
+}
+
+module.exports = {
+    fetchUserAccounts,
+    creditClientAccount
 }
