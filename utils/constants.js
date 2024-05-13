@@ -5,7 +5,8 @@ const transactionTypes = {
 
 const transactionSource = {
     INTERNAL: "Internal",
-    EXTERNAL: "External"
+    EXTERNAL: "External",
+    SYSTEM: "System"
 }
 
 const charges = {

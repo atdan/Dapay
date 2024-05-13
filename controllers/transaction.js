@@ -70,7 +70,7 @@ exports.fetchRates = async (req, res, next) => {
     }
 }
 
-exports.fetchAccounts = async (req, res, next) => {
+exports.fetchSystemAccounts = async (req, res, next) => {
     try {
         const response = await YellowcardService.getAccount();
 
@@ -163,14 +163,14 @@ async function processPayment(payload) {
 
         const transactionOptions = {
             account: payload.account,
-            source: payload.source,
+            source: payload.source ? payload.source : transactionSource.SYSTEM,
             beneficiaryName: accountLookup.accountName,
             beneficiaryAccountNumber: payload.accountNumber,
             beneficiaryBank: network.code, 
             currency, 
             amount, 
             localAmount,
-            reason: req.body.reason,
+            reason: payload.reason,
         }
         const txn = await initDebitTransaction(transactionOptions);
 
@@ -187,7 +187,7 @@ async function processPayment(payload) {
         }
 
         const response = await YellowcardService.submitPaymentRequest(paymentRequest);
-        
+            
         txn.vendorReference = response.id;
         txn.vendorCreatedAt = response.createdAt;
         txn.vendorUpdatedAt = response.updatedAt;
@@ -195,7 +195,7 @@ async function processPayment(payload) {
         txn.vendorConvertedAmount = response.convertedAmount;
 
         const transaction = await createDebitTransaction({
-            account,
+            account: payload.account,
             txn
         });
 
@@ -211,7 +211,6 @@ exports.sendPaymentRequest = async (req, res, next) => {
 
         const payload = {
             ...req.body,
-            country: req.query.country,
             account: req.account,
             user: req.user,
         }

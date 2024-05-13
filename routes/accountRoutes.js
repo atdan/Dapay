@@ -6,11 +6,11 @@ const router = express.Router();
 
 router.use(authController.protect)
 
-router.get('/user', accountsController.fetchUserAccounts)
+router.get('/', accountsController.fetchUserAccounts)
 
 
 // Only available for admin
 router.use(authController.restrictTo('admin'))
-router.get('/credit', accountsController.creditClientAccount)
+router.post('/credit', accountsController.creditClientAccount)
 
 module.exports = router;

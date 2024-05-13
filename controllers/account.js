@@ -4,18 +4,23 @@ const {createCreditTransaction, createDebitTransaction} = require("./transaction
 
 const fetchUserAccounts = async(req, res, next) => {
     try {
-        const accounts = await Accounts.find({ user : req.user._id });
 
-        if (!accounts) {
-            return next(new AppError("Error fetching user accounts", 400))
+        if (req.account) {
+            return req.account;
+        }else {
+            const accounts = await Accounts.find({ user : req.user._id });
+
+            if (!accounts) {
+                return next(new AppError("Error fetching user accounts", 400))
+            }
+    
+            res.status(200).json({
+                status: "success",
+                data: {
+                  accounts,
+                },
+            });
         }
-
-        res.status(200).json({
-            status: "success",
-            data: {
-              accounts,
-            },
-        });
     } catch (error) {
         next(error);
     }
@@ -73,7 +78,7 @@ const creditClientAccount = async(req, res, next) => {
         }
 
         const txnOptions = {account, 
-            source, 
+            source: source ? source : 'system', 
             beneficiaryName: beneficiaryName ? beneficiaryName : "System", 
             beneficiaryAccountNumber: beneficiaryAccountNumber ? beneficiaryAccountNumber : "0000000001",
             beneficiaryBank: beneficiaryBank ? beneficiaryBank : "Dapay", 

@@ -8,7 +8,7 @@ const factory = require('../controllers/handleFactory')
 exports.getAllUsers = async (req, res, next) => {
     try {
         const features = new APIFeatures(Model.find(), req.query)
-            .EMAIL_USERNAME_APPfilter()
+            .filter()
             .sort()
             .limitFields()
             .paginate();

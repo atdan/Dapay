@@ -60,7 +60,7 @@ app.use(
 
 //Routes
 app.use('/api/users', userRouter);
-app.use('/api/transaction', transactionRouter)
+app.use('/api/transactions', transactionRouter)
 app.use('/api/accounts', accountsRouter)
 
 // Swagger route open with data

@@ -23,7 +23,13 @@ const accountSchema = new mongoose.Schema({
   balance: {
     type: mongoose.Schema.Types.Decimal128,
     default: 0,
-  },    
+  },
+  clients: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Users',
+    }
+  ],    
   createdAt: {
     type: Date,
     default: Date.now()

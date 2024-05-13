@@ -15,7 +15,7 @@ const signToken = (id) =>
     expiresIn: config.jwtExpires,
   });
 
-const createSendToken = (user, statusCode, req, res) => {
+const createSendToken = (user, account, statusCode, req, res) => {
     const token = signToken(user._id)
 
     // Remove some feild from output
@@ -27,14 +27,16 @@ const createSendToken = (user, statusCode, req, res) => {
         status: 'success',
         token,
         data: {
-            user: user,
+            user,
+            account,
         }
     })
 }
 
 exports.signup = async (req, res, next) => {
     try {
-        const {email, password} = req.body;
+        const {firstName, lastName, email, 
+            password, role, phone, passwordConfirm} = req.body;
 
         // check if email and password exist
         if(!email || !password) {
@@ -49,12 +51,13 @@ exports.signup = async (req, res, next) => {
         }
 
         const newUser = await Users.create({
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            email: req.body.email,
-            phoneNumber: req.body.phone,
-            password: req.body.password,
-            passwordConfirm: req.body.passwordConfirm,
+            firstName,
+            lastName,
+            email,
+            phoneNumber: phone,
+            password,
+            passwordConfirm,
+            role
         })
 
         if (!user) {
@@ -68,7 +71,7 @@ exports.signup = async (req, res, next) => {
         });
 
         // create token,
-        createSendToken(newUser, 201,req, res)
+        createSendToken(newUser, usdAccount, 201,req, res)
     } catch (err) {
         next(err)
     }
@@ -90,9 +93,10 @@ exports.login = async (req, res, next) => {
             return next(new AppError("User not found", 401))
         }
 
-        user.comparePassword(password, function(err, isMatch) {
+        user.comparePassword(password, async function(err, isMatch) {
             if (isMatch && !err) {
-                createSendToken(user, 200, req, res)
+                const account = await Accounts.findOne({user: user._id});
+                createSendToken(user, account, 200, req, res)
             }else {
                 if (err) {
                     return next(new AppError('Incorrect email or password', 403))
@@ -224,11 +228,13 @@ exports.resetPassword = async (req, res, next) => {
         user.passwordConfirm = req.body.passwordConfirm;
         user.passwordResetToken = undefined;
         user.passwordResetExpires = undefined;
+        user.passwordChangedAt = Date.now();    
         await user.save();
-        // 3) Update changedPasswordAt property for the user
 
-        // 4) Log the user in, send JWT
-        createSendToken(user, 200, req, res)
+        const account = await Accounts.findOne({user: user._id});
+
+        // 3) Log the user in, send JWT
+        createSendToken(user, account, 200, req, res)
     } catch (err) {
         next(err)
     }
