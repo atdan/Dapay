@@ -47,8 +47,8 @@ const initDebitTransaction = async (options) => {
         const {account, source, beneficiaryName, beneficiaryAccountNumber, localAmount,
             beneficiaryBank, reference = v4(), currency, amount, reason} = options;
     
-        const charges = source == transactionSource.INTERNAL ? charges.INTERNAL : charges.EXTERNAL;
-        const totalCost = charges + amount;
+        // const charges = charges.EXTERNAL;
+        const totalCost = charges.EXTERNAL + amount;
         if (Number(account.balance) < totalCost) {
             return (new AppError("Insufficient Funds", 400))
         }
@@ -60,18 +60,20 @@ const initDebitTransaction = async (options) => {
             beneficiaryBank, 
             reference: v4(), 
             currency, 
+            type: transactionTypes.DEBIT,
             amount, 
             localAmount,
-            reason,
             reference,
-            charges,
+            charges: 0,
             balanceBefore: Number(account.balance),
             balanceAfter: newBalance,
-            narration,
+            narration: reason,
         }
 
         return txn;
     } catch (error) {
+        console.log(`Init DEbit txn Error: ${error}`)
+
         throw (error)
     }
 }
@@ -79,21 +81,28 @@ const initDebitTransaction = async (options) => {
 const createDebitTransaction = async(data) => {
     try {
 
-        const transaction = await Transactions.create(data.txn);
+
+        const trans = data.txn;
+        const account = data.account;
+
+        console.log(`Debit Txn: ${JSON.stringify(data)}`)
+
+        const transaction = await Transactions.create(trans);
 
         if (!transaction) {
             return (new AppError("Error creating transaction", 500))
         }
-        const totalCost = charges + amount;
-        const newBalance = Number(account.balance) - Number(totalCost);
+        const newBalance = Number(account.balance) - Number(trans.balanceAfter);
 
-        data.account.balance = newBalance;
+        account.balance = newBalance;
 
         await account.save();
 
         return transaction;
         
     } catch (error) {
+        console.log(`Create DEbit txn Error: ${error}`)
+
         throw (error);
     }
 }

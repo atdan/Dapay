@@ -14,7 +14,7 @@ const transactionSchema = new mongoose.Schema({
   },
   source: {
     type: String,
-    enum: [transactionSource.INTERNAL, transactionSource.EXTERNAL],
+    enum: [transactionSource.INTERNAL, transactionSource.EXTERNAL, transactionSource.SYSTEM],
     required: [true, "Transaction source must be set"],
   },
   beneficiaryName: {
@@ -61,7 +61,6 @@ const transactionSchema = new mongoose.Schema({
   },
   vendorReference: {
     type: String,
-    required: true,
   },
   vendorCreatedAt: {
     type: String,

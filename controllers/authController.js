@@ -110,7 +110,7 @@ exports.login = async (req, res, next) => {
                 if (!err) {
                     return next(new AppError('Incorrect email or password', 403))
                 }
-                return next(new AppError(err))
+                return next(new AppError(err, 500))
             }
         })
 
@@ -213,7 +213,7 @@ exports.forgotPassword = async (req, res, next) => {
             await user.save({ validateBeforeSave: false });
       
             return next(
-              new AppError('There was an error sending the email. Try again later')
+              new AppError('There was an error sending the email. Try again later', 500)
             );
         }
     } catch (err) {

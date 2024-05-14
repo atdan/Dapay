@@ -13,7 +13,8 @@ class YellowCardService {
             country: data.country
         }
 
-        const cachedData =  await retrieveCachedData("Channels", data.country);
+
+        const cachedData = retrieveCachedData("Channels", data.country);
 
         if (cachedData) {
             return cachedData;
@@ -22,9 +23,10 @@ class YellowCardService {
 
             const path = YellowCardHelper.endpoints.GET_CHANNELS.path
             const method = YellowCardHelper.endpoints.GET_CHANNELS.method
+            const url = YellowCardHelper.endpoints.GET_CHANNELS.url;
 
             const options = {
-                url: YellowCardHelper.endpoints.GET_CHANNELS.url,
+                url,
                 method,
                 headers: YellowCardHelper.buildHeader(null, path, method),
                 params: queryParam
@@ -52,7 +54,8 @@ class YellowCardService {
 
     } catch (error) {
         console.log(` Yellowcard Request Error: ${error}`)
-        return new AppError(error);
+        return new AppError(error.mmessage ? error.message : 
+            error, error.status ? error.status : 500);
     }
   }
 
@@ -133,7 +136,10 @@ class YellowCardService {
                     response.data.code : 500)
             }
 
+
             cacheData("Networks", data.country, response.data, 120)
+
+            // let supportedNetworks = response.data.filter(n => n.status === 'active');
 
             return response.data;
         }
@@ -181,6 +187,7 @@ class YellowCardService {
         }
 
     } catch (error) {
+        console.log(`Rates Error: ${error}`)
         return new AppError(error, 500);
     }
   }
@@ -189,6 +196,8 @@ class YellowCardService {
     try {
         const path = YellowCardHelper.endpoints.GET_ACCOUNTS.path
         const method = YellowCardHelper.endpoints.GET_ACCOUNTS.method
+
+        console.log(`Fetching Account Details`);
 
         const options = {
             method,
@@ -224,19 +233,27 @@ class YellowCardService {
   static async resolveBankAccount(data) {
     try {
 
+        console.log(` Account resolveBankAccount: ${data}`);
+
         const path = YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.path
         const method = YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.method
 
+        const accountType = data.accountType;
+        delete data.accountType;
         const options = {
             url: YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.url  + `/${accountType}`,
             method,
-            headers: YellowCardHelper.buildHeader(data, path, method),
-            data,
+            headers: YellowCardHelper.buildHeader(data, path + accountType, method),
+            body: data,
         }
+
+        console.log(` resolveBankAccount options: ${JSON.stringify(options)}`);
 
         const response = await axios(options);
 
         if (!response) {
+            console.log(`No response resolveBankAccount`);
+
             return new AppError("Request failed", 500);
         }
 
@@ -249,6 +266,8 @@ class YellowCardService {
         return response.data;
 
     } catch (error) {
+        console.log(`Error resolveBankAccount: ${error}`);
+
         return new AppError(error, 500);
     }
   }
@@ -264,6 +283,7 @@ class YellowCardService {
    static async submitPaymentRequest(data) {
     try {
 
+
         const path = YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.path
         const method = YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.method
 
@@ -274,21 +294,34 @@ class YellowCardService {
             data,
         }
 
+        console.log(`Submit payment payload: ${JSON.stringify(options)}`);
+
         const response = await axios(options);
 
+        console.log(`Submit payment response 1 : ${response}`);
+
         if (!response) {
-            return new AppError("Request failed", 500);
+            console.log(`Submit payment no respnse`);
+
+            throw new AppError("Request failed", 500);
         }
 
+        console.log(`Submit payment response: ${response}`);
+
         if (response.status != 200) {
-            return new AppError(response.data.message ? 
+            throw new AppError(response.data.message ? 
                 response.data.message : "Request Failed",
                 response.data.code ? 
                 response.data.code : 500)
         }
+
+        console.log(`Transaction response: ${response.data}`)
+
         return response.data;
 
     } catch (error) {
+        console.log(`Submit payment error: ${error}`);
+
         return new AppError(error, 500);
     }
   }

@@ -85,10 +85,16 @@ exports.fetchSystemAccounts = async (req, res, next) => {
 
 exports.accountLookup = async (req, res, next) => {
     try {
+        console.log(` Account Details Lookup: ${JSON.stringify(req.body)}`);
+
         const payload = {
-            accountNumber: req.body.account, 
+            accountNumber: req.body.accountNumber, 
             networkId: req.body.networkId,
+            accountType: req.body.accountType,
+            country: req.body.country,
+            accountBank: req.body.bankCode
         }
+
 
         const response = await YellowcardService.resolveBankAccount(payload);
 
@@ -103,25 +109,25 @@ exports.accountLookup = async (req, res, next) => {
 
 async function processPayment(payload) {
     try{
-        const localCurrency = countryCurrencyCode(payload.country);
+        const localCurrency = payload.channel.currency;
 
-        let {data: channelData} = await YellowcardService.getAvailableChannels({
-            country: payload.country
-        });
-        let {data: networkData} = await YellowcardService.getNetworks({
-            country: payload.country
-        });
-        let {rates: ratesData} = await YellowcardService.getRates({
+        // let {data: channelData} = await YellowcardService.getAvailableChannels({
+        //     country: payload.country
+        // });
+        // let {data: networkData} = await YellowcardService.getNetworks({
+        //     country: payload.country
+        // });
+        let ratesData = await YellowcardService.getRates({
             currency: localCurrency
         });
-        let {channels, networks, rates} = {...networkData, ...channelData, ...ratesData}
+        // let {channels, networks, rates} = {...networkData, ...channelData, ...ratesData}
 
         // Select channel
-        let channel = channels[1]
-        let supportedNetworks = networks.filter(n => n.status === 'active' && n.channelIds.includes(channel.id));
-        let network = supportedNetworks[0]
+        let channel = payload.channel;
+        // let supportedNetworks = networks.filter(n => n.status === 'active' && n.channelIds.includes(channel.id));
+        let network = payload.network;
         
-        const currency = rates.filter(r => r.code === localCurrency)
+        const currency = ratesData.rates.filter(r => r.code === localCurrency)
         
         let amount, localAmount;
 
@@ -146,28 +152,33 @@ async function processPayment(payload) {
             idType: payload.user.idType
         }
 
-        const accountLookup = await YellowcardService.resolveBankAccount({
-            accountNumber: payload.accountNumber,
-            networkId: network.id,
-            accountType: network.accountNumberType
-        })
+        let accountLookup;
+        // const accountLookup = await YellowcardService.resolveBankAccount({
+        //     accountNumber: payload.accountNumber,
+        //     networkId: network.id,
+        //     accountType: network.accountNumberType
+        // })
 
         const destination = {
-            accountName: accountLookup.accountName,
+            accountName: accountLookup && accountLookup.accountName ? 
+                    accountLookup.accountName : payload.accountName,
             accountNumber: payload.accountNumber,
             accountType: network.accountNumberType,
             country: network.country,
             networkId: network.id,
-            accountBank: network.code
+            accountBank: network.code,
+            networkName: network.name,
+            phoneNumber: payload.phone ? payload.phone : null
           }
 
         const transactionOptions = {
             account: payload.account,
             source: payload.source ? payload.source : transactionSource.SYSTEM,
-            beneficiaryName: accountLookup.accountName,
+            beneficiaryName: accountLookup && accountLookup.accountName ? 
+                    accountLookup.accountName : payload.accountName,
             beneficiaryAccountNumber: payload.accountNumber,
             beneficiaryBank: network.code, 
-            currency, 
+            currency: localCurrency, 
             amount, 
             localAmount,
             reason: payload.reason,
@@ -176,14 +187,16 @@ async function processPayment(payload) {
 
         let paymentRequest = {
             channelId: channel.id,
-            sequenceId: txn.reference,
-            currency: channel.currency,
-            country: channel.country,
-            amountUSD: payload.amount,
+            // sequenceId: txn.reference,
+            sequenceId: "123",
+            // currency: channel.currency,
+            // country: channel.country,
+            amount: payload.amount,
             reason: payload.reason,
+            customerType: payload.user.customerType,
             destination,
             sender,
-            forceAccept: req.user.role === "admin" ? true : false,
+            forceAccept: payload.user.role === "admin" ? true : false,
         }
 
         const response = await YellowcardService.submitPaymentRequest(paymentRequest);
@@ -202,7 +215,9 @@ async function processPayment(payload) {
         return transaction;
 
     }catch(error) {
-        return new AppError(error)
+        console.log(`Payment Error: ${error}`)
+
+        return new AppError(error, 500)
     }
 }
 
@@ -214,6 +229,7 @@ exports.sendPaymentRequest = async (req, res, next) => {
             account: req.account,
             user: req.user,
         }
+        console.log(`Payment Payload: ${JSON.stringify(payload)}`)
         const transaction = await processPayment(payload);
 
         res.status(200).json({

@@ -1,6 +1,7 @@
 const express = require('express');
 const transactionController = require('./../controllers/transaction')
-const authController = require('../controllers/authController')
+const authController = require('../controllers/authController');
+const { lockTransaction } = require('../services/cache');
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.get('/networks', transactionController.fetchNetworks)
 router.get('/rates', transactionController.fetchRates)
 router.get('/supported-countries', transactionController.fetchSupportedCountries)
 router.post('/account-lookup', transactionController.accountLookup)
-router.route('/transfer').post(transactionController.sendPaymentRequest)
+router.route('/transfer').post(lockTransaction, transactionController.sendPaymentRequest)
 router.get('/payment-lookup', transactionController.lookupPayment)
 router.get('/payment-lookup-sq', transactionController.lookupPaymentBySequenceId)
 
