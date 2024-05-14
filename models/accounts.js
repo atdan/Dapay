@@ -12,7 +12,7 @@ const accountSchema = new mongoose.Schema({
     required: [true, "Account name must be set"],
   },
   accountNumber: {
-    type: Number,
+    type: String,
     required: [true, "Account number must be set"],
   },
   currency: {

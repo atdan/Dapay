@@ -7,7 +7,7 @@ const factory = require('../controllers/handleFactory')
 
 exports.getAllUsers = async (req, res, next) => {
     try {
-        const features = new APIFeatures(Model.find(), req.query)
+        const features = new APIFeatures(Users.find(), req.query)
             .filter()
             .sort()
             .limitFields()
@@ -22,7 +22,7 @@ exports.getAllUsers = async (req, res, next) => {
             data: doc
         })
     } catch (error) {
-        next(err);
+        next(error);
     }
 }
 

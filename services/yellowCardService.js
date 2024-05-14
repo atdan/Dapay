@@ -13,19 +13,28 @@ class YellowCardService {
             country: data.country
         }
 
-        const cachedData = retrieveCachedData("Channels", data.country);
+        const cachedData =  await retrieveCachedData("Channels", data.country);
 
         if (cachedData) {
             return cachedData;
         } else {
+            console.log("No cached Data");
+
+            const path = YellowCardHelper.endpoints.GET_CHANNELS.path
+            const method = YellowCardHelper.endpoints.GET_CHANNELS.method
+
             const options = {
-                method: YellowCardHelper.endpoints.GET_CHANNELS.method,
-                headers: YellowCardHelper.buildHeader(),
+                url: YellowCardHelper.endpoints.GET_CHANNELS.url,
+                method,
+                headers: YellowCardHelper.buildHeader(null, path, method),
                 params: queryParam
             }
 
-            const response = await axios.get(YellowCardHelper.endpoints.GET_CHANNELS.url, options);
+            console.log(`Yellow Card Options: ${JSON.stringify(options)}`)
 
+            const response = await axios(options);
+
+            console.log(`Request response: ${response}`)
             if (!response) {
                 return new AppError("Request failed", 500);
             }
@@ -42,6 +51,7 @@ class YellowCardService {
         }
 
     } catch (error) {
+        console.log(` Yellowcard Request Error: ${error}`)
         return new AppError(error);
     }
   }
@@ -57,9 +67,12 @@ class YellowCardService {
         if (cachedData) {
             return cachedData;
         } else {
+            const path = YellowCardHelper.endpoints.GET_CHANNELS.path
+            const method = YellowCardHelper.endpoints.GET_CHANNELS.method
+
             const options = {
-                method: YellowCardHelper.endpoints.GET_CHANNELS.method,
-                headers: YellowCardHelper.buildHeader(),
+                method,
+                headers: YellowCardHelper.buildHeader(null, path, method),
                 params: queryParam
             }
     
@@ -98,10 +111,12 @@ class YellowCardService {
         if (cachedData) {
             return cachedData;
         } else {
+            const path = YellowCardHelper.endpoints.GET_NETWORKS.path
+            const method = YellowCardHelper.endpoints.GET_NETWORKS.method
 
             const options = {
-                method: YellowCardHelper.endpoints.GET_NETWORKS.method,
-                headers: YellowCardHelper.buildHeader(),
+                method,
+                headers: YellowCardHelper.buildHeader(null, path, method),
                 params: queryParam
             }
     
@@ -139,9 +154,12 @@ class YellowCardService {
         if (cachedData) {
             return cachedData;
         } else {
+            const path = YellowCardHelper.endpoints.GET_RATES.path
+            const method = YellowCardHelper.endpoints.GET_RATES.method
+
             const options = {
-                method: YellowCardHelper.endpoints.GET_RATES.method,
-                headers: YellowCardHelper.buildHeader(),
+                method,
+                headers: YellowCardHelper.buildHeader(null, path, method),
                 params: queryParam
             }
     
@@ -169,9 +187,12 @@ class YellowCardService {
 
   static async getAccount() {
     try {
+        const path = YellowCardHelper.endpoints.GET_ACCOUNTS.path
+        const method = YellowCardHelper.endpoints.GET_ACCOUNTS.method
+
         const options = {
-            method: YellowCardHelper.endpoints.GET_ACCOUNTS.method,
-            headers: YellowCardHelper.buildHeader(),
+            method,
+            headers: YellowCardHelper.buildHeader(null, path, method),
         }
 
         const response = await axios.get(YellowCardHelper.endpoints.GET_ACCOUNTS.url, options);
@@ -203,10 +224,13 @@ class YellowCardService {
   static async resolveBankAccount(data) {
     try {
 
+        const path = YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.path
+        const method = YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.method
+
         const options = {
             url: YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.url  + `/${accountType}`,
-            method: YellowCardHelper.endpoints.RESOLVE_BANK_ACCOUNT.method,
-            headers: YellowCardHelper.buildHeader(data),
+            method,
+            headers: YellowCardHelper.buildHeader(data, path, method),
             data,
         }
 
@@ -240,10 +264,13 @@ class YellowCardService {
    static async submitPaymentRequest(data) {
     try {
 
+        const path = YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.path
+        const method = YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.method
+
         const options = {
             url: YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.url,
-            method: YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.method,
-            headers: YellowCardHelper.buildHeader(data),
+            method,
+            headers: YellowCardHelper.buildHeader(data, path, method),
             data,
         }
 
@@ -274,9 +301,12 @@ class YellowCardService {
         if (cachedData) {
             return cachedData;
         } else {
+            const path = YellowCardHelper.endpoints.LOOKUP_PAYMENT.path
+            const method = YellowCardHelper.endpoints.LOOKUP_PAYMENT.method
+
             const options = {
-                method: YellowCardHelper.endpoints.LOOKUP_PAYMENT.method,
-                headers: YellowCardHelper.buildHeader(),
+                method,
+                headers: YellowCardHelper.buildHeader(null, path, method),
             }
     
             const response = await axios.get(YellowCardHelper.endpoints.LOOKUP_PAYMENT.url + `/${data.id}`, options);
@@ -306,12 +336,15 @@ class YellowCardService {
 
     static async lookupPaymentBySequenceId(data) {
         try {
+            const path = YellowCardHelper.endpoints.LOOKUP_PAYMENT_BY_SEQUENCE_ID.path
+            const method = YellowCardHelper.endpoints.LOOKUP_PAYMENT_BY_SEQUENCE_ID.method
+
             const options = {
-                method: YellowCardHelper.endpoints.LOOKUP_PAYMENT.method,
-                headers: YellowCardHelper.buildHeader(),
+                method,
+                headers: YellowCardHelper.buildHeader(null, path, method),
             }
     
-            const response = await axios.get(YellowCardHelper.endpoints.LOOKUP_PAYMENT.url + `/sequence-id/${data.sequenceId}`, options);
+            const response = await axios.get(YellowCardHelper.endpoints.LOOKUP_PAYMENT_BY_SEQUENCE_ID.url + `/sequence-id/${data.sequenceId}`, options);
     
             if (!response) {
                 return new AppError("Request failed", 500);
@@ -333,10 +366,12 @@ class YellowCardService {
   static async acceptPaymentRequest(data) {
     try {  
 
+        const path = YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.path
+        const method = YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.method
         const options = {
             url: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.url + `/${data.id}/accept`,
-            method: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.method,
-            headers: YellowCardHelper.buildHeader(),
+            method,
+            headers: YellowCardHelper.buildHeader(null, path, method),
         }
 
         const response = await axios(options);
@@ -362,11 +397,13 @@ class YellowCardService {
 
   static async denyPaymentRequest(data) {
     try {  
+        const path = YellowCardHelper.endpoints.DENY_PAYMENT_REQUEST.path
+        const method = YellowCardHelper.endpoints.DENY_PAYMENT_REQUEST.method
 
         const options = {
-            url: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.url + `/${data.id}/deny`,
-            method: YellowCardHelper.endpoints.ACCEPT_PAYMENT_REQUEST.method,
-            headers: YellowCardHelper.buildHeader(),
+            url: YellowCardHelper.endpoints.DENY_PAYMENT_REQUEST.url + `/${data.id}/deny`,
+            method,
+            headers: YellowCardHelper.buildHeader(null, path, method),
         }
 
         const response = await axios(options);
@@ -400,10 +437,13 @@ class YellowCardService {
   static async createWebhook(data) {
     try {  
 
+        const path = YellowCardHelper.endpoints.CREATE_WEBHOOK.path
+        const method = YellowCardHelper.endpoints.CREATE_WEBHOOK.method
+
         const options = {
             url: YellowCardHelper.endpoints.CREATE_WEBHOOK.url,
-            method: YellowCardHelper.endpoints.CREATE_WEBHOOK.method,
-            headers: YellowCardHelper.buildHeader(data),
+            method,
+            headers: YellowCardHelper.buildHeader(data, path, method),
             data,
         }
 
@@ -438,10 +478,13 @@ class YellowCardService {
   static async updateWebhook(data) {
     try {  
 
+        const path = YellowCardHelper.endpoints.UPDATE_WEBHOOK.path
+        const method = YellowCardHelper.endpoints.UPDATE_WEBHOOK.method
+
         const options = {
             url: YellowCardHelper.endpoints.UPDATE_WEBHOOK.url,
-            method: YellowCardHelper.endpoints.UPDATE_WEBHOOK.method,
-            headers: YellowCardHelper.buildHeader(data),
+            method,
+            headers: YellowCardHelper.buildHeader(data, path, method),
             data,
         }
 
@@ -475,10 +518,13 @@ class YellowCardService {
   static async removeWebhook(data) {
     try {  
 
+        const path = YellowCardHelper.endpoints.REMOVE_WEBHOOK.path
+        const method = YellowCardHelper.endpoints.REMOVE_WEBHOOK.method
+
         const options = {
             url: YellowCardHelper.endpoints.REMOVE_WEBHOOK.url + `/${data.id}`,
-            method: YellowCardHelper.endpoints.REMOVE_WEBHOOK.method,
-            headers: YellowCardHelper.buildHeader(),
+            method,
+            headers: YellowCardHelper.buildHeader(null, path, method),
         }
 
         const response = await axios(options);
@@ -505,10 +551,12 @@ class YellowCardService {
   static async listWebhooks() {
     try {  
 
+        const path = YellowCardHelper.endpoints.LIST_WEBHOOKS.path
+        const method = YellowCardHelper.endpoints.LIST_WEBHOOKS.method
         const options = {
             url: YellowCardHelper.endpoints.LIST_WEBHOOKS.url,
-            method: YellowCardHelper.endpoints.LIST_WEBHOOKS.method,
-            headers: YellowCardHelper.buildHeader(),
+            method,
+            headers: YellowCardHelper.buildHeader(null, path, method),
         }
 
         const response = await axios(options);

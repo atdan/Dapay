@@ -38,7 +38,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
 app.use((req, res, next) => {
-  console.log("hello from middleware");
+  // console.log("hello from middleware");
   next();
 });
 

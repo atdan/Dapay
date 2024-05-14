@@ -1,23 +1,30 @@
+const { v4 } = require('uuid');
 const Accounts = require("../models/accounts");
 const AppError = require('../utils/AppError');
-const {createCreditTransaction, createDebitTransaction} = require("./transaction")
+const {createCreditTransaction, createDebitTransaction} = require("../services/transactionService");
+const { transactionTypes } = require('../utils/constants');
 
 const fetchUserAccounts = async(req, res, next) => {
     try {
 
         if (req.account) {
-            return req.account;
+            res.status(200).json({
+                status: "success",
+                data: {
+                  account: req.account,
+                },
+            });
         }else {
-            const accounts = await Accounts.find({ user : req.user._id });
+            const account = await Accounts.find({ user : req.user._id });
 
-            if (!accounts) {
+            if (!account) {
                 return next(new AppError("Error fetching user accounts", 400))
             }
     
             res.status(200).json({
                 status: "success",
                 data: {
-                  accounts,
+                  account,
                 },
             });
         }
@@ -84,7 +91,11 @@ const creditClientAccount = async(req, res, next) => {
             beneficiaryBank: beneficiaryBank ? beneficiaryBank : "Dapay", 
             currency, 
             amount, 
-            narration}
+            narration,
+            vendorStatus: "completed",
+            vendorReference: v4(),
+            type: transactionTypes.CREDIT
+        }
 
         const transaction = await createCreditTransaction(txnOptions);
 
@@ -92,7 +103,12 @@ const creditClientAccount = async(req, res, next) => {
             return next(new AppError("Transaction Failed", 500))
         }
 
-        return transaction;
+        return res.status(200).json({
+            status: "success",
+            data: {
+              transaction,
+            },
+        });;
         
     } catch (error) {
         next(error);

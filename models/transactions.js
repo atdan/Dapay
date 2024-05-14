@@ -42,7 +42,7 @@ const transactionSchema = new mongoose.Schema({
   },
   localAmount: {
     type: mongoose.Schema.Types.Decimal128,
-    required: [true, "Local Transaction amount not set"],
+    default: 0
   },
   charges: {
     type: mongoose.Schema.Types.Decimal128,
@@ -78,7 +78,6 @@ const transactionSchema = new mongoose.Schema({
   },
   vendorConvertedAmount: {
     type: String,
-    required: true,
   },
   createdAt: {
     type: Date,

@@ -10,7 +10,7 @@ router.get('/', accountsController.fetchUserAccounts)
 
 
 // Only available for admin
-router.use(authController.restrictTo('admin'))
+router.use(authController.restrictTo('system'))
 router.post('/credit', accountsController.creditClientAccount)
 
 module.exports = router;

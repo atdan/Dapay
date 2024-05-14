@@ -11,7 +11,7 @@ const { clearKey } = require("../services/cache")
 const { generateAccountNumber, currency } = require("../utils/constants")
 
 const signToken = (id) =>
-  jwt.sign({ id: id }, config.secret, {
+  jwt.sign({ id: id }, config.jwtSecret, {
     expiresIn: config.jwtExpires,
   });
 
@@ -35,8 +35,8 @@ const createSendToken = (user, account, statusCode, req, res) => {
 
 exports.signup = async (req, res, next) => {
     try {
-        const {firstName, lastName, email, 
-            password, role, phone, passwordConfirm} = req.body;
+        const {firstName, lastName, email, idType, idNumber, address,
+            password, role, phone, passwordConfirm, dob, country} = req.body;
 
         // check if email and password exist
         if(!email || !password) {
@@ -57,18 +57,24 @@ exports.signup = async (req, res, next) => {
             phoneNumber: phone,
             password,
             passwordConfirm,
-            role
+            role,
+            idType,
+            idNumber,
+            address,
+            dob,
+            country
         })
 
-        if (!user) {
+        if (!newUser) {
             return next(new AppError("Error creating user", 500))
         }
 
         let account;
-        if (user.role = 'admin') {
+        if (newUser.role == 'admin') {
              account = await Accounts.create({
-                user: user._id,
-                accountNumber: generateAccountNumber(),
+                user: newUser._id,
+                accountNumber: (await generateAccountNumber()),
+                accountName: newUser.firstName + " " + newUser.lastName,
                 currency: currency.USD,
             });
         }
@@ -101,7 +107,7 @@ exports.login = async (req, res, next) => {
                 const account = await Accounts.findOne({user: user._id});
                 createSendToken(user, account, 200, req, res)
             }else {
-                if (err) {
+                if (!err) {
                     return next(new AppError('Incorrect email or password', 403))
                 }
                 return next(new AppError(err))
@@ -152,8 +158,8 @@ exports.protect = async (req,res, next) => {
         // GRANT ACCESS TO PROTECTED ROUTE
         req.user = currentUser;
         next() 
-    } catch (err) {
-        next(err)
+    } catch (error) {
+        next(error)
     }
     
 }

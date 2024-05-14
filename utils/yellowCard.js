@@ -12,59 +12,73 @@ class YellowCardHelper {
 
   static endpoints = {
     GET_CHANNELS: {
-      url : config.ycBaseUrl + "/channels",
+      url : config.ycBaseUrl + "/business/channels",
+      path: "/business/channels",
       method: "GET"
     },
     GET_NETWORKS: {
-      url : config.ycBaseUrl + "/networks",
+      url : config.ycBaseUrl + "/business/networks",
+      path: "/business/networks",
       method: "GET"
     },
     GET_RATES: {
-      url : config.ycBaseUrl + "/rates",
+      url : config.ycBaseUrl + "/business/rates",
+      path: "/business/rates",
       method: "GET"
     },
     GET_ACCOUNTS: {
-      url : config.ycBaseUrl + "/accounts",
+      url : config.ycBaseUrl + "/business/accounts",
+      path: "/business/accounts",
       method: "GET"
     },
     RESOLVE_BANK_ACCOUNT: {
-      url : config.ycBaseUrl + "/details",
+      url : config.ycBaseUrl + "/business/details",
+      path: "/business/details",
       method: "POST"
     },
     SUBMIT_PAYMENT_REQUEST: {
-      url : config.ycBaseUrl + "/payments",
+      url : config.ycBaseUrl + "/business/payments",
+      path: "/business/payments",
       method: "POST"
     },
     ACCEPT_PAYMENT_REQUEST: {
-      url : config.ycBaseUrl + "/payments",
+      url : config.ycBaseUrl + "/business/payments",
+      path: "/business/payments",
       method: "POST"
     },
     DENY_PAYMENT_REQUEST: {
-      url : config.ycBaseUrl + "/payments",
+      url : config.ycBaseUrl + "/business/payments",
+      path: "/business/payments",
       method: "POST"
     },
     LOOKUP_PAYMENT: {
-      url : config.ycBaseUrl + "/payments",
+      url : config.ycBaseUrl + "/business/payments",
+      path: "/business/payments",
       method: "GET"
     },
     LOOKUP_PAYMENT_BY_SEQUENCE_ID: {
-      url : config.ycBaseUrl + "/payments/sequence-id",
+      url : config.ycBaseUrl + "/business/payments/sequence-id",
+      path: "/business/payments/sequence-id",
       method: "GET"
     },
     CREATE_WEBHOOK: {
-      url : config.ycBaseUrl + "/webhooks",
+      url : config.ycBaseUrl + "/business/webhooks",
+      path: "/business/webhooks",
       method: "POST"
     },
     UPDATE_WEBHOOK: {
-      url : config.ycBaseUrl + "/webhooks",
+      url : config.ycBaseUrl + "/business/webhooks",
+      path: "/business/webhooks",
       method: "PUT"
     },
     REMOVE_WEBHOOK: {
-      url : config.ycBaseUrl + "/webhooks",
+      url : config.ycBaseUrl + "/business/webhooks",
+      path: "/business/webhooks",
       method: "DELETE"
     },
     LIST_WEBHOOKS: {
-      url : config.ycBaseUrl + "/webhooks",
+      url : config.ycBaseUrl + "/business/webhooks",
+      path: "/business/webhooks",
       method: "GET"
     }
   }
@@ -123,13 +137,16 @@ class YellowCardHelper {
     return JSON.stringify(data)
   }
 
-  static buildHeader(body) {
+  static buildHeader(body, path, method) {
+
     const date = new Date().toISOString();
     const hmac = crypto.algo.HMAC.create(crypto.algo.SHA256, config.apiSecret);
 
     hmac.update(date, 'utf8')
     hmac.update(path, 'utf8')
     hmac.update(method, 'utf8')
+
+    console.log(`Yellow Card hmac: ${hmac}}`)
 
     if(body) {
       let bodyHmac = crypto.SHA256(JSON.stringify(body)).toString(crypto.enc.Base64)
@@ -141,7 +158,6 @@ class YellowCardHelper {
 
 
     return {
-      accept: 'application/json',
       "X-YC-Timestamp": date,
       "Authorization": `YcHmacV1 ${config.apiKey}:${signature}`
     }
