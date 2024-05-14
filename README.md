@@ -1,14 +1,17 @@
-# ComfySloth - Demo mini-scale ecommerce website (Backend). 
+# Dapay (Backend). 
 ### Documentation (Swagger)
   For API documentation, Please run this application and hit this route from any browser. 
 http://localhost:9000/api-docs
  > It's not fully completed yet. 
 ### Features
 * Authentication and Authorization. 
-* Products Management. 
+* Role based auth
 * Payment. 
 * Password Reset. 
-* Little bit application Security. 
+* Client and Admin account management
+* Payment Integration
+* Logger
+* Cache
 * Swagger API Documentation 
 ### Requirements 
 * Node v14+ 
@@ -21,23 +24,25 @@ cd Dapay
 ### Step 1: Create config.env
 ```
 NODE_ENV=development/production
-PORT=9000
+PORT=9036
 
 DATABASE=mongodb://localhost:27017/dapay
 JWT_SECRET=sayc-owgn-kktw-kktrw
 JWT_EXPIRES_IN=1d
 
-EMAIL_USERNAME_APP=your gmail address
-EMAIL_PASSWORD_APP=your gmail app password
+EMAIL_USERNAME_APP=#
+EMAIL_PASSWORD_APP=#
 
-# Production host address
-HOST_ADDRESS=https://sample.test.com
-LOCAL_HOST=http://localhost:3000
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+LOCAL_HOST=http://localhost:9036
 
 # yellowcard
 YC_API_KEY=yellow card api key
 YC_SECRET=yellowcard api secret
-YC_BASE_URL=https://sandbox.api.yellowcard.io/business
+YC_BASE_URL=yellowcard base url
 ```
 
 ### Step 3: Start the server 
