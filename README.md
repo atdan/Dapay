@@ -57,6 +57,25 @@ Start this application: <br />
 ``` 
 npm start
 ```
+
+### Solution specifications
+* Dapay is a Business account management system, the owner of the business is registered as an admin and able to signup clients under them and add them to their account. The Admin is given privildges to call the following endpoints
+1. Single and Bulk Transfers without Approval i.e. their request is force approved
+2. Accept and Deny Payment Requests
+3. Create, Update and remove webhooks
+4. Add and Remove Users linked to their account
+5. View Account Details and Balance
+6. All other actions that can be performed by their clients below
+The Clients added to their Account are able to perform
+1. Fetch Supported transaction Channels, Countries, Networks and Rates/
+2. Perform account Lookup using Resolve Bank Account 
+3. Single and Bulk Transfers which require approval from Admin
+
+A System account which Moderates the application is authorized to:
+1. Credit Accounts
+2. Fetch System account Retrieve information about System Account with Yellowcard, including available balance.
+
+
 ### Challenges 
 * Test Data Consistency: The endpoint to Submit Payment Request persistently returned 400 - Bad Request - Response code with no descriptive error message of the malformed/missing data And upon further inspection I noticed the request Body params provided in the API Reference and the Submit your first Payment Request Code Recipe were inconsistent. The code recipe included parameters such as country and currency which were not present in the API reference also in the recipe was amountUSD which was called amount in the API reference. The account number which was the recipe was also not a valid one as the valid account number was at the Sandbox testing section of the Guide.
 
