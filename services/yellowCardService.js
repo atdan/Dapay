@@ -14,7 +14,7 @@ class YellowCardService {
         }
 
 
-        const cachedData = retrieveCachedData("Channels", data.country);
+        const cachedData = getSingleCacheData("Channels:" + data.country);
 
         if (cachedData) {
             return cachedData;
@@ -45,7 +45,9 @@ class YellowCardService {
                     response.data.code : 500)
             }
     
-            cacheData("Channels", data.country, response.data, 120)
+            if (response.data) {
+                cacheSingleData("Channels:" + data.country, response.data, 120)
+            }
             return response.data;
         }
 
@@ -62,7 +64,7 @@ class YellowCardService {
             country: data.country
         }
 
-        const cachedData = retrieveCachedData("ActiveChannels", data.country);
+        const cachedData = getSingleCacheData("ActiveChannels:" + data.country);
 
         if (cachedData) {
             return cachedData;
@@ -91,7 +93,10 @@ class YellowCardService {
     
             let activeChannels = response.data.filter(c => c.status === 'active')
     
-            cacheData("ActiveChannels", data.country, response.data, 120)
+            if (response.data) {
+                cacheSingleData("ActiveChannels:" + data.country, response.data, 120)
+            }
+
             return activeChannels;
         }
         
@@ -106,7 +111,7 @@ class YellowCardService {
             country: data.country
         }
 
-        const cachedData = retrieveCachedData("Networks", data.country);
+        const cachedData = getSingleCacheData("Networks:" + data.country);
 
         if (cachedData) {
             return cachedData;
@@ -133,8 +138,9 @@ class YellowCardService {
                     response.data.code : 500)
             }
 
-
-            cacheData("Networks", data.country, response.data, 120)
+            if (response.data) {
+                cacheSingleData("Networks:" + data.country, response.data, 120)
+            }
 
             // let supportedNetworks = response.data.filter(n => n.status === 'active');
 
@@ -152,9 +158,6 @@ class YellowCardService {
             currency: data.currency
         }
 
-        if (data.currency) {
-            
-        }
         const cachedData = getSingleCacheData("Rates:" + data.currency);
 
         if (cachedData) {
@@ -323,7 +326,7 @@ class YellowCardService {
   static async lookupPayment(data) {
     try {
 
-        const cachedData = retrieveCachedData("LookupPayment", data.id);
+        const cachedData = getSingleCacheData("LookupPayment" + data.id);
 
         if (cachedData) {
             return cachedData;
@@ -349,7 +352,9 @@ class YellowCardService {
                     response.data.code : 500)
             }
 
-            cacheData("LookupPayment", data.id, response.data, 600)
+            if (response.data) {
+                cacheSingleData("LookupPayment:" + data.id, response.data, 120)
+            }
 
             return response.data;
 
