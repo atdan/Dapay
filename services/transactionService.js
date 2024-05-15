@@ -48,6 +48,10 @@ const initDebitTransaction = async (options) => {
             beneficiaryBank, reference = v4(), currency, amount, reason} = options;
     
         // const charges = charges.EXTERNAL;
+
+        console.log(`Account ${JSON.stringify(account)}`)
+
+
         const totalCost = charges.EXTERNAL + amount;
         if (Number(account.balance) < totalCost) {
             return (new AppError("Insufficient Funds", 400))
@@ -86,6 +90,11 @@ const createDebitTransaction = async(data) => {
         const account = data.account;
 
         console.log(`Debit Txn: ${JSON.stringify(data)}`)
+
+        if (!data.successful || trans.vendorStatus == 'error') {
+
+            return trans;
+        }
 
         const transaction = await Transactions.create(trans);
 

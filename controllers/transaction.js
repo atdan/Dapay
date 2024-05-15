@@ -1,6 +1,8 @@
 const { v4 } = require('uuid');
 const csv = require("csv-parser");
 const { Readable } = require("stream")
+const multer = require('multer');
+
 const Transactions = require("../models/transactions");
 const AppError = require('../utils/AppError');
 const { transactionTypes, transactionSource, currency, charges } = require("../utils/constants");
@@ -8,6 +10,7 @@ const { countryISOCode, countryCurrencyCode } = require("../utils/yellowCard");
 const YellowcardService = require("../services/yellowCardService")
 const { createCreditTransaction, createDebitTransaction, initDebitTransaction } = require("../services/transactionService");
 const Accounts = require('../models/accounts');
+
 
 exports.fetchSupportedCountries = async (req, res, next) => {
     try {
@@ -166,8 +169,8 @@ async function processPayment(payload) {
             accountType: network.accountNumberType,
             country: network.country,
             networkId: network.id,
-            accountBank: network.code,
-            networkName: network.name,
+            accountBank: network.code ? network.code : null,
+            networkName: network.name ? network.name : null,
             phoneNumber: payload.phone ? payload.phone : null
           }
 
@@ -187,12 +190,12 @@ async function processPayment(payload) {
 
         let paymentRequest = {
             channelId: channel.id,
-            // sequenceId: txn.reference,
-            sequenceId: "123",
+            sequenceId: txn.reference,
+            // sequenceId: "123",
             // currency: channel.currency,
             // country: channel.country,
             amount: payload.amount,
-            reason: payload.reason,
+            reason: payload.reason ? payload.reason : "other",
             customerType: payload.user.customerType,
             destination,
             sender,
@@ -209,7 +212,8 @@ async function processPayment(payload) {
 
         const transaction = await createDebitTransaction({
             account: payload.account,
-            txn
+            txn,
+            successful: response && response.status ? true : false
         });
 
         return transaction;
@@ -245,6 +249,18 @@ exports.sendPaymentRequest = async (req, res, next) => {
 
 exports.sendBulkPaymentRequest = async (req, res, next) => {
     try {
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded.' });
+        }
+    
+        const csvStream = new Readable({
+            read() {
+                this.push(req.file.buffer);
+                this.push(null); // End of stream
+            }
+        });
+
         // Read CSV file asynchronously
         const payments = [];
         const transactions = [];
@@ -254,7 +270,7 @@ exports.sendBulkPaymentRequest = async (req, res, next) => {
         const csvData = req.body.csvData;
         
         // Convert CSV data to a readable stream
-        const csvStream = Readable.from(csvData.split('\n'));
+        // const csvStream = Readable.from(csvData.split('\n'));
 
         csvStream
             .pipe(csv())
@@ -272,13 +288,29 @@ exports.sendBulkPaymentRequest = async (req, res, next) => {
 
                         // csv fields: country, amount, localAmount, source, accountNumber
                         const payload = {
-                            ...payments,
+                            ...payment,
                             account: req.account,
                             user: req.user,
+                            network: {
+                                id: payment.networkId,
+                                accountNumberType: payment.accountNumberType ? payment.accountNumberType : "bank",
+                                country: payment.country ? payment.country : "NG",
+                            },
+                            channel: {
+                                id: payment.channelId,
+                                currency: payment.currency ? payment.currency : "NGN"
+                            }
                         }
 
+                        console.log('Bulk request options:' + JSON.stringify(payload));
+
                         const transaction = await processPayment(payload);
-                        transactions.push(transaction)
+
+                        if (transaction.status == 'fail'){
+                            failedTransactions.push(transaction)
+                        }else {
+                            transactions.push(transaction)
+                        }
                     }
                 
                 } catch (error) {
@@ -389,6 +421,7 @@ exports.createWebhook = async (req, res, next) => {
             data: response
         })
     } catch (error) {
+        console.log(`Error Createing webhook: ${error}`)
         next(error)
     }
 }
@@ -443,24 +476,52 @@ exports.listWebhooks = async (req, res, next) => {
     }
 }
 
-exports.recievePaymentCompletedWebhook = async (req, res, next) => {
+exports.recievePaymentWebhook = async (req, res, next) => {
     try {
-        // const {
-        //     id, sequenceId, status, apiKey, event, executedAt
-        // } = req.body;
+        const {
+            id, sequenceId, status, apiKey, event, executedAt
+        } = req.body;
 
-        // if(status != "completed") {
+        if(status != "completed") {
 
-        // }
-        // const payment = await YellowcardService.lookupPayment({ id })
+        }
+        const payment = await YellowcardService.lookupPayment({ id })
 
-        // const account = await Accounts.findOne({accountNumber: payment.destination.accountNumber})
-        // const transaction = {
-        //     account,
-        //     source: transactionSource.EXTERNAL,
-        //     beneficiaryName: payment.sender.name,
-        //     beneficiaryAccountNumber: payment.sender.
-        // }
+        const account = await Accounts.findOne({accountNumber: payment.sender.email})
+        
+        const totalCost = charges.EXTERNAL + amount;
+
+        const newBalance = Number(account.balance) - Number(totalCost);
+
+        const transactionOptions = {
+            account: account._id,
+            source: transactionSource.EXTERNAL,
+            beneficiaryName: payment.destination.accountName,
+            beneficiaryAccountNumber: payment.sender.accountNumber,
+            beneficiaryBank: network.code, 
+            currency: payment.currency, 
+            amount: payment.amount, 
+            localAmount: payment.convertedAmount,
+            reason: payment.reason,
+            vendorReference: payment.id,
+            vendorCreatedAt: payment.createdAt,
+            vendorUpdatedAt: payment.updatedAt,
+            vendorStatus: payment.status,
+            vendorConvertedAmount: payment.convertedAmount,
+            charges: 0,
+            balanceBefore: Number(account.balance),
+            balanceAfter: newBalance,
+            type: transactionTypes.DEBIT,
+
+        }
+
+        const transaction = await createDebitTransaction({
+            account: payload.account,
+            transactionOptions,
+            successful: response && response.status ? true : false
+        });
+
+        return transaction;
         
     } catch (error) {
         next(error)

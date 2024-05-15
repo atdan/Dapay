@@ -22,6 +22,7 @@ global.logger = Logger.createLogger({label: "Dapay"})
 const userRouter = require('./routes/userRoutes');
 const transactionRouter = require('./routes/transactionRoutes')
 const accountsRouter = require('./routes/accountRoutes')
+const systemRouter = require('./routes/systemRoute')
 
 
 // Errors
@@ -62,6 +63,7 @@ app.use(
 app.use('/api/users', userRouter);
 app.use('/api/transactions', transactionRouter)
 app.use('/api/accounts', accountsRouter)
+app.use('/api/system', systemRouter)
 
 // Swagger route open with data
 const swaggerDocument = require('./swagger.json');

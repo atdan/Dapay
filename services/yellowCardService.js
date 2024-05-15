@@ -2,7 +2,7 @@ const axios = require('axios')
 const config = require('../config');
 const AppError = require("../utils/AppError")
 const YellowCardHelper = require("../utils/yellowCard");
-const { cacheData, retrieveCachedData } = require('./cache');
+const { cacheData, retrieveCachedData, getSingleCacheData, cacheSingleData } = require('./cache');
 
 
 class YellowCardService {
@@ -155,7 +155,10 @@ class YellowCardService {
             currency: data.currency
         }
 
-        const cachedData = retrieveCachedData("Rates", data.currency);
+        if (data.currency) {
+            
+        }
+        const cachedData = getSingleCacheData("Rates:" + data.currency);
 
         if (cachedData) {
             return cachedData;
@@ -181,7 +184,9 @@ class YellowCardService {
                     response.data.code ? 
                     response.data.code : 500)
             }
-            cacheData("Rates", data.currency, response.data, 60)
+            if (response.data) {
+                cacheSingleData("Rates:" + data.currency, response.data, 60)
+            }
 
             return response.data;
         }
@@ -281,8 +286,8 @@ class YellowCardService {
    * @returns {object} - account details
    */  
    static async submitPaymentRequest(data) {
+    let response;
     try {
-
 
         const path = YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.path
         const method = YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.method
@@ -291,12 +296,12 @@ class YellowCardService {
             url: YellowCardHelper.endpoints.SUBMIT_PAYMENT_REQUEST.url,
             method,
             headers: YellowCardHelper.buildHeader(data, path, method),
-            data,
+            body: data, 
         }
-
+        
         console.log(`Submit payment payload: ${JSON.stringify(options)}`);
 
-        const response = await axios(options);
+        response = await axios(options);
 
         console.log(`Submit payment response 1 : ${response}`);
 
@@ -320,7 +325,7 @@ class YellowCardService {
         return response.data;
 
     } catch (error) {
-        console.log(`Submit payment error: ${error}`);
+        console.log(`Submit payment error: ${error} response: ${response}`);
 
         return new AppError(error, 500);
     }
@@ -477,7 +482,7 @@ class YellowCardService {
             url: YellowCardHelper.endpoints.CREATE_WEBHOOK.url,
             method,
             headers: YellowCardHelper.buildHeader(data, path, method),
-            data,
+            body: data,
         }
 
         const response = await axios(options);
@@ -497,6 +502,8 @@ class YellowCardService {
         return response.data;
 
     } catch (error) {
+        console.log(`Error Createing webhook: ${error}`)
+
         return new AppError(error, 500);
     }
   }
@@ -518,7 +525,7 @@ class YellowCardService {
             url: YellowCardHelper.endpoints.UPDATE_WEBHOOK.url,
             method,
             headers: YellowCardHelper.buildHeader(data, path, method),
-            data,
+            body: data,
         }
 
         const response = await axios(options);
@@ -538,6 +545,8 @@ class YellowCardService {
         return response.data;
 
     } catch (error) {
+        console.log(`Error Updating webhook: ${error}`)
+
         return new AppError(error, 500);
     }
   }
@@ -577,6 +586,8 @@ class YellowCardService {
         return response.data;
 
     } catch (error) {
+        console.log(`Error Removing webhook: ${error}`)
+
         return new AppError(error, 500);
     }
   }

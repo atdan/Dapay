@@ -78,7 +78,7 @@ function cacheHashData(hashKey, key, data, time = 60) {
 }
 
 function cacheSingleData(key, value, time = 60) {
-    client.set(key, value).then((result) => {
+    client.set(key, JSON.stringify(value)).then((result) => {
       client.expire(key, time);
       console.log(`Data cached successfully: ${result}`);
     }).catch(err => {
@@ -87,7 +87,7 @@ function cacheSingleData(key, value, time = 60) {
     });
 }
 
-function getCacheData(key) {
+function getSingleCacheData(key) {
     client.get(key).then((doc) => {
       if (doc) {
         console.log(`Cache value: ${doc}`)
@@ -104,30 +104,48 @@ function getCacheData(key) {
 
 
 
-function retrieveCachedData(hashKey, key) {
-  try {
-    console.log("Redis clientt: " + JSON.stringify(client))
+// function retrieveCachedData(hashKey, key) {
+//   try {
+//     console.log("Redis clientt: " + JSON.stringify(client))
 
-    let cacheValue;
-    client.hGet(hashKey, key).then((doc) => {
-      console.log(`Cache response: ${doc}`)
+//     let cacheValue;
+//     client.hGet(hashKey, key).then((doc) => {
+//       console.log(`Cache response: ${doc}`)
 
-      if (doc) {
-        console.log(`Cache value: ${doc}`)
-        return JSON.parse(doc);
-      }
-      return null;
-    }).catch(err => {
-      console.log("Error retrieving cached data: " + err)
-      return null;
-    })
+//       if (doc) {
+//         console.log(`Cache value: ${doc}`)
+//         return JSON.parse(doc);
+//       }
+//       return null;
+//     }).catch(err => {
+//       console.log("Error retrieving cached data: " + err)
+//       return null;
+//     })
     
+//   } catch (error) {
+//     console.log("Error retrieving cached data: " + error)
+//     return null;
+//   }
+// }
+
+async function retrieveCachedData(hashKey, key) {
+  try {
+    console.log("Redis client: " + JSON.stringify(client));
+
+    const cacheValue = await client.hGet(hashKey, key);
+    console.log(`Cache response: ${cacheValue}`);
+
+    if (cacheValue) {
+      console.log(`Cache value: ${cacheValue}`);
+      return JSON.parse(cacheValue);
+    }
+    return null;
   } catch (error) {
-    console.log("Error retrieving cached data: " + error)
+    console.log("Error retrieving cached data: " + error);
     return null;
   }
-
 }
+
 
 const lockTransaction = (req, res, next) => {
   try {
@@ -136,7 +154,7 @@ const lockTransaction = (req, res, next) => {
     const key = req.body.accountNumber + "-" + req.body.amount
     console.log(`Lock transaction: Key - ${key} Body- ${body}`)
 
-    const transactionLocked = getCacheData(key);
+    const transactionLocked = getSingleCacheData(key);
 
     if (transactionLocked) {
       console.log(`Duplicate Transaction ${transactionLocked}`)
@@ -163,5 +181,7 @@ module.exports = {
 
   cacheData: cacheHashData,
   retrieveCachedData,
+  cacheSingleData,
+  getSingleCacheData,
   lockTransaction
 };

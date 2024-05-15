@@ -2,8 +2,14 @@ const express = require('express');
 const transactionController = require('./../controllers/transaction')
 const authController = require('../controllers/authController');
 const { lockTransaction } = require('../services/cache');
+const multer = require('multer');
 
 const router = express.Router();
+
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 
 router.use(authController.protect)
 
@@ -17,13 +23,10 @@ router.route('/transfer').post(lockTransaction, transactionController.sendPaymen
 router.get('/payment-lookup', transactionController.lookupPayment)
 router.get('/payment-lookup-sq', transactionController.lookupPaymentBySequenceId)
 
-// Only available for system
-router.use(authController.restrictTo('system'))
-router.get('/system-account', transactionController.fetchSystemAccounts)
 
 // Only available for admin and system
-router.use(authController.restrictTo(['admin', "system"]))
-router.route('/transfer-bulk').post(transactionController.sendBulkPaymentRequest)
+router.use(authController.restrictTo("admin", "system"))
+router.route('/transfer-bulk').post( upload.single('csvFile'), transactionController.sendBulkPaymentRequest)
 router.route('/accept').post(transactionController.acceptPaymentRequest)
 router.route('/deny').post(transactionController.denyPaymentRequest)
 

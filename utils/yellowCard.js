@@ -27,8 +27,8 @@ class YellowCardHelper {
       method: "GET"
     },
     GET_ACCOUNTS: {
-      url : config.ycBaseUrl + "/business/accounts",
-      path: "/business/accounts",
+      url : config.ycBaseUrl + "/business/account",
+      path: "/business/account",
       method: "GET"
     },
     RESOLVE_BANK_ACCOUNT: {
