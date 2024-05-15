@@ -147,7 +147,6 @@ class YellowCardHelper {
     hmac.update(path, 'utf8')
     hmac.update(method, 'utf8')
 
-    console.log(`Yellow Card hmac: ${hmac}}`)
 
     if(body) {
       let bodyHmac = crypto.SHA256(JSON.stringify(body)).toString(crypto.enc.Base64)
